@@ -89,54 +89,22 @@ Get the prime factorization of a positive integer. Returns a list.
 factor(60) = 2 ^ 2 * 3 ^ 1 * 5 ^ 1
 Stored as a list, [2,2,3,1,5,1]
 First 12 prime numbers: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37
-Start by using naive method, and if it doesn't return full prime factorization, use pollard rho to get additional factors.
-If pollard rho gives you a factor that isn't prime, get the prime factorization of that factor as well.
+Start by using naive method, and if it doesn't return full prime factorization, use pollard rho to get additional prime factors.
 """
 
 
 def factor(n: int) -> list[int]:
-    final_dict: dict[int, int] = {}
-
-    def factor_sub(n: int) -> None:
-        # use naive method first, if the last factor is not prime, use the pollard rho method to keep factoring it
-        naive: list[int] = factor_naive(n)
-        # if naive didn't factor all the way
-        if naive[len(naive) - 1] == 1 and not is_prime(naive[len(naive) - 2]):
-            # add all factors except the last ones to the map
-            for a in range(0, len(naive) - 2, 2):
-                if naive[a] in final_dict:
-                    final_dict[naive[a]] += naive[a+1]
-                else:
-                    final_dict[naive[a]] = naive[a+1]
-            # prime factorize the last factor that naive didn't get
-            while True:
-                factor: int = factor_pollard_rho(n)
-                if factor == -1:
-                    break
-                # if factor isn't prime, get the prime factorization of it and continue
-                if not is_prime(factor):
-                    factor_sub(factor)
-                else:
-                    if factor in final_dict:
-                        final_dict[factor] += 1
-                    else:
-                        final_dict[factor] = 1
-                n //= factor
-            if n != 1:
-                if n in final_dict:
-                    final_dict[n] += 1
-                else:
-                    final_dict[n] = 1
-        else:
-            for a in range(0, len(naive), 2):
-                if naive[a] in final_dict:
-                    final_dict[naive[a]] += naive[a+1]
-                else:
-                    final_dict[naive[a]] = naive[a+1]
-    # call helper
-    factor_sub(n)
-    # convert from dictionary format to organized list format
-    final: list[int] = []
-    for a in sorted(list(final_dict.keys())):
-        final += [a, final_dict[a]]
+    # use naive method first, if the last factor is not prime, use the pollard rho method to keep factoring it
+    final: list[int] = factor_naive(n)
+    # naive may have not factored all the way
+    final.pop()
+    n = final.pop()
+    while True:
+        factor: int = factor_pollard_rho(n)
+        # no additional prime factors
+        if factor == -1:
+            break
+        final += [factor, 1]
+        n //= factor
+    final += [n, 1]
     return final
